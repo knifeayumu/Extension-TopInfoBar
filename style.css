@@ -32,6 +32,10 @@ body #sheld.flexPatch #chat {
     opacity: 0.5;
 }
 
+body.movingUI #extensionTopBar {
+    padding-right: 30px;
+}
+
 #extensionTopBarChatName {
     flex: 1;
     cursor: pointer;
