@@ -9,82 +9,25 @@ const {
     openCharacterChat,
     executeSlashCommands,
 } = SillyTavern.getContext();
+import { addJQueryHighlight } from './jquery-highlight.js';
 import { debounce } from '../../../utils.js';
 
-// Source: https://github.com/bartaz/sandbox.js/blob/master/jquery.highlight.js
-if (!jQuery.fn.highlight) {
-    console.log('Patching jQuery highlight');
-    jQuery.extend({
-        highlight: function (node, re, nodeName, className) {
-            if (node.nodeType === 3) {
-                var match = node.data.match(re);
-                if (match) {
-                    var highlight = document.createElement(nodeName || 'span');
-                    highlight.className = className || 'highlight';
-                    var wordNode = node.splitText(match.index);
-                    wordNode.splitText(match[0].length);
-                    var wordClone = wordNode.cloneNode(true);
-                    highlight.appendChild(wordClone);
-                    wordNode.parentNode.replaceChild(highlight, wordNode);
-                    return 1; //skip added node in parent
-                }
-            } else if ((node.nodeType === 1 && node.childNodes) && // only element nodes that have children
-                !/(script|style)/i.test(node.tagName) && // ignore script and style nodes
-                !(node.tagName === nodeName.toUpperCase() && node.className === className)) { // skip if already highlighted
-                for (var i = 0; i < node.childNodes.length; i++) {
-                    i += jQuery.highlight(node.childNodes[i], re, nodeName, className);
-                }
-            }
-            return 0;
-        }
-    });
-
-    jQuery.fn.unhighlight = function (options) {
-        var settings = { className: 'highlight', element: 'span' };
-        jQuery.extend(settings, options);
-
-        return this.find(settings.element + "." + settings.className).each(function () {
-            var parent = this.parentNode;
-            parent.replaceChild(this.firstChild, this);
-            parent.normalize();
-        }).end();
-    };
-
-    jQuery.fn.highlight = function (words, options) {
-        var settings = { className: 'highlight', element: 'span', caseSensitive: false, wordsOnly: false };
-        jQuery.extend(settings, options);
-
-        if (words.constructor === String) {
-            words = [words];
-        }
-        words = jQuery.grep(words, function (word, i) {
-            return word != '';
-        });
-        words = jQuery.map(words, function (word, i) {
-            return word.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
-        });
-        if (words.length == 0) { return this; };
-
-        var flag = settings.caseSensitive ? "" : "i";
-        var pattern = "(" + words.join("|") + ")";
-        if (settings.wordsOnly) {
-            pattern = "\\b" + pattern + "\\b";
-        }
-        var re = new RegExp(pattern, flag);
-
-        return this.each(function () {
-            jQuery.highlight(this, re, settings.element, settings.className);
-        });
-    };
-}
-
+const movingDivs = document.getElementById('movingDivs');
 const sheld = document.getElementById('sheld');
 const chat = document.getElementById('chat');
 const topBar = document.createElement('div');
 const chatName = document.createElement('select');
 const searchInput = document.createElement('input');
+const draggableTemplate = document.getElementById('generic_draggable_template');
 
 const icons = [
+    {
+        id: 'extensionTopBarToggleSidebar',
+        icon: 'fa-fw fa-solid fa-box-archive',
+        position: 'left',
+        title: 'Toggle sidebar',
+        onClick: onToggleSidebarClick,
+    },
     {
         id: 'extensionTopBarChatManager',
         icon: 'fa-fw fa-solid fa-address-book',
@@ -300,11 +243,32 @@ function addIcons() {
     });
 }
 
-patchSheldIfNeeded();
-addTopBar();
-addIcons();
-setChatName(getCurrentChatId());
-chatName.addEventListener('change', async () => {
+function addSideBar() {
+    if (!draggableTemplate) {
+        console.warn('Draggable template not found. Side bar will not be added.');
+    }
+
+    /** @type {DocumentFragment} */
+    const fragment = draggableTemplate.content.cloneNode(true);
+    const draggable = fragment.querySelector('.draggable');
+    const closeButton = fragment.querySelector('.dragClose');
+    draggable.id = 'extensionSideBar';
+    closeButton.addEventListener('click', onToggleSidebarClick);
+
+    const scrollContainer = document.createElement('div');
+    scrollContainer.classList.add('scrollY');
+    scrollContainer.id = 'extensionSideBarContainer';
+    draggable.appendChild(scrollContainer);
+
+    movingDivs.appendChild(draggable);
+}
+
+function onToggleSidebarClick() {
+    document.getElementById('extensionSideBar')?.classList.toggle('visible');
+    document.getElementById('extensionTopBarToggleSidebar')?.classList.toggle('active');
+}
+
+async function onChatNameChange() {
     const context = SillyTavern.getContext();
     const chatId = chatName.value;
 
@@ -321,5 +285,16 @@ chatName.addEventListener('change', async () => {
         await openCharacterChat(chatId);
         return;
     }
-});
-eventSource.on(event_types.CHAT_CHANGED, setChatName);
+}
+
+// Init extension on load
+(async function () {
+    addJQueryHighlight();
+    patchSheldIfNeeded();
+    addTopBar();
+    addIcons();
+    addSideBar();
+    setChatName(getCurrentChatId());
+    chatName.addEventListener('change', onChatNameChange);
+    eventSource.on(event_types.CHAT_CHANGED, setChatName);
+})();

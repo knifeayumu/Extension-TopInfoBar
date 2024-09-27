@@ -7,6 +7,41 @@ body #sheld.flexPatch #chat {
     flex-grow: 1;
 }
 
+#extensionSideBar {
+    top: 0;
+}
+
+#extensionSideBar.visible {
+    display: flex;
+}
+
+body.reduced-motion #extensionSideBar {
+    transition: none;
+}
+
+#extensionSideBar #extensionSideBarContainer {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 0 1em;
+    margin-top: 1.25em;
+}
+
+#extensionSideBar #extensionSideBarContainer .sideBarItem {
+    display: flex;
+    flex-direction: column;
+    padding: 0.25em;
+    cursor: pointer;
+    border-radius: 0.5em;
+    transition: filter 0.2s;
+}
+
+#extensionSideBar #extensionSideBarContainer .sideBarItem:hover {
+    filter: brightness(1.1);
+}
+
 #extensionTopBar {
     display: flex;
     flex-direction: row;
