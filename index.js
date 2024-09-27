@@ -11,7 +11,7 @@ const {
 } = SillyTavern.getContext();
 import { addJQueryHighlight } from './jquery-highlight.js';
 import { getGroupPastChats } from '../../../group-chats.js';
-import { getPastCharacterChats } from '../../../../script.js';
+import { getPastCharacterChats, animation_duration, animation_easing } from '../../../../script.js';
 import { debounce, timestampToMoment, sortMoments, uuidv4 } from '../../../utils.js';
 
 /** @type {HTMLDivElement} */
@@ -319,10 +319,26 @@ function addSideBar() {
 async function onToggleSidebarClick() {
     const sidebar = document.getElementById('extensionSideBar');
     const toggle = document.getElementById('extensionTopBarToggleSidebar');
-    sidebar?.classList.toggle('visible');
-    toggle?.classList.toggle('active');
 
-    if (sidebar?.classList.contains('visible')) {
+    if (!sidebar || !toggle) {
+        console.warn('Sidebar or toggle button not found');
+        return;
+    }
+
+    const shouldAnimate = animation_duration > 0;
+    if (shouldAnimate) {
+        const alreadyVisible = sidebar.classList.contains('visible');
+        const keyframes = [
+            { opacity: alreadyVisible ? 1 : 0 },
+            { opacity: alreadyVisible ? 0 : 1 },
+        ];
+        sidebar.animate(keyframes, { duration: animation_duration, easing: animation_easing });
+    }
+
+    sidebar.classList.toggle('visible');
+    toggle.classList.toggle('active');
+
+    if (sidebar.classList.contains('visible')) {
         await populateSideBar();
     }
 }
