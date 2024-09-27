@@ -1,12 +1,14 @@
 # Chat Top Info Bar
 
-Adds a top bar to the chat window with shortcuts to quick actions:
+Adds a top bar to the chat window with shortcuts to quick actions (left to right):
 
-- View chat file name
+- Open a sidebar with a chats list
 - Open chat file manager
+- View chat file name and switch chats
 - Search in the chat
 - Create new chat
 - Rename current chat file
+- Delete current chat
 - Close current chat
 
 ## How to install
