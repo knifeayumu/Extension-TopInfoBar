@@ -169,6 +169,10 @@ function setChatName(name) {
             await populateSideBar();
         }, 0);
     }
+
+    if (isNotInChat) {
+        setTimeout(() => populateSideBar(), 0);
+    }
 }
 
 /**
