@@ -13,6 +13,7 @@ body #sheld.flexPatch #chat {
 
 #extensionSideBar {
     top: 0;
+    display: none;
 }
 
 #extensionSideBar.visible {
