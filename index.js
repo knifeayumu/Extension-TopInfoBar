@@ -28,6 +28,14 @@ const chatName = document.createElement('select');
 const searchInput = document.createElement('input');
 /** @type {HTMLTemplateElement} */
 const draggableTemplate = document.getElementById('generic_draggable_template');
+/** @type {HTMLDivElement} */
+const connectionProfiles = document.createElement('div');
+/** @type {HTMLDivElement} */
+const connectionProfilesStatus = document.createElement('div');
+/** @type {HTMLSelectElement} */
+const connectionProfilesSelect = document.createElement('select');
+/** @type {HTMLDivElement} */
+const apiBlock = document.getElementById('rm_api_block');
 
 const icons = [
     {
@@ -43,6 +51,13 @@ const icons = [
         position: 'left',
         title: 'View chat files',
         onClick: onChatManagerClick,
+    },
+    {
+        id: 'extensionTopBarToggleConnectionProfiles',
+        icon: 'fa-fw fa-solid fa-plug',
+        position: 'right',
+        title: 'Show connection profiles',
+        onClick: onToggleConnectionProfilesClick,
     },
     {
         id: 'extensionTopBarNewChat',
@@ -245,8 +260,7 @@ function addTopBar() {
     searchInput.classList.add('text_pole');
     searchInput.type = 'search';
     searchInput.addEventListener('input', () => searchDebounced(searchInput.value.trim()));
-    topBar.appendChild(chatName);
-    topBar.appendChild(searchInput);
+    topBar.append(chatName, searchInput);
     sheld.insertBefore(topBar, chat);
 }
 
@@ -316,6 +330,35 @@ function addSideBar() {
     movingDivs.appendChild(draggable);
 }
 
+function addConnectionProfiles() {
+    const connectionProfilesMainSelect = document.getElementById('connection_profiles');
+    connectionProfiles.id = 'extensionConnectionProfiles';
+    connectionProfilesStatus.id = 'extensionConnectionProfilesStatus';
+    connectionProfilesSelect.id = 'extensionConnectionProfilesSelect';
+    connectionProfilesSelect.title = 'Switch connection profile';
+    connectionProfilesSelect.addEventListener('change', async () => {
+        /** @type {HTMLSelectElement} */
+        if (!connectionProfilesMainSelect) {
+            return;
+        }
+        connectionProfilesMainSelect.value = connectionProfilesSelect.value;
+        connectionProfilesMainSelect.dispatchEvent(new Event('change'));
+    });
+    if (connectionProfilesMainSelect) {
+        const observer = new MutationObserver(() => {
+            connectionProfilesSelect.innerHTML = connectionProfilesMainSelect.innerHTML;
+            connectionProfilesSelect.value = connectionProfilesMainSelect.value;
+        });
+        observer.observe(connectionProfilesMainSelect, { childList: true });
+        connectionProfilesMainSelect.addEventListener('change', async () => {
+            connectionProfilesSelect.value = connectionProfilesMainSelect.value;
+        });
+    }
+
+    connectionProfiles.append(connectionProfilesSelect, connectionProfilesStatus);
+    sheld.insertBefore(connectionProfiles, chat);
+}
+
 async function onToggleSidebarClick() {
     const sidebar = document.getElementById('extensionSideBar');
     const toggle = document.getElementById('extensionTopBarToggleSidebar');
@@ -348,6 +391,8 @@ async function onToggleSidebarClick() {
         await populateSideBar();
         await animation.finished;
     }
+
+    savePanelsState();
 }
 
 async function populateSideBar() {
@@ -482,6 +527,105 @@ async function onChatNameChange() {
     await openChatById(chatId);
 }
 
+async function onToggleConnectionProfilesClick() {
+    const button = document.getElementById('extensionTopBarToggleConnectionProfiles');
+
+    if (!button) {
+        console.warn('Connection profiles button not found');
+        return;
+    }
+
+    button.classList.toggle('active');
+    connectionProfiles.classList.toggle('visible');
+    savePanelsState();
+    await onOnlineStatusChange();
+}
+
+async function onOnlineStatusChange() {
+    if (!connectionProfiles.classList.contains('visible')) {
+        return;
+    }
+
+    /** @type {HTMLSelectElement} */
+    const connectionProfilesMainSelect = document.getElementById('connection_profiles');
+    if (connectionProfilesMainSelect) {
+        connectionProfilesSelect.innerHTML = connectionProfilesMainSelect.innerHTML;
+        connectionProfilesSelect.value = connectionProfilesMainSelect.value;
+    } else {
+        connectionProfilesSelect.classList.add('displayNone');
+    }
+
+    const { SlashCommandParser, onlineStatus, mainApi } = SillyTavern.getContext();
+
+    if (onlineStatus === 'no_connection') {
+        connectionProfilesStatus.classList.add('offline');
+        connectionProfilesStatus.textContent = 'No connection...';
+        return;
+    }
+
+    async function getCurrentAPI() {
+        let currentAPI = mainApi;
+        try {
+            const commandResult = await SlashCommandParser.commands['api'].callback({ quiet: 'true' }, '');
+            if (commandResult) {
+                currentAPI = commandResult;
+            }
+        } catch (error) {
+            console.error('Failed to get current API', error);
+        }
+        const fancyNameOption = apiBlock.querySelector(`select:not(#main_api) option[value="${currentAPI}"]`) ?? apiBlock.querySelector(`select#main_api option[value="${currentAPI}"]`);
+        if (fancyNameOption) {
+            // Remove text in parentheses or brackets
+            return fancyNameOption.textContent.replace(/[\[\(].*[\]\)]/, '').trim();
+        }
+        return currentAPI;
+    }
+
+    async function getCurrentModel() {
+        let currentModel = onlineStatus;
+        try {
+            const commandResult = await SlashCommandParser.commands['model'].callback({ quiet: 'true' }, '');
+            if (commandResult) {
+                currentModel = commandResult;
+            }
+        } catch (error) {
+            console.error('Failed to get current model', error);
+        }
+        const fancyNameOption = apiBlock.querySelector(`option[value="${currentModel}"]`);
+        if (fancyNameOption) {
+            return fancyNameOption.textContent.trim();
+        }
+        return currentModel;
+    }
+
+    const [currentAPI, currentModel] = await Promise.all([getCurrentAPI(), getCurrentModel()]);
+    connectionProfilesStatus.textContent = `${currentAPI} – ${currentModel}`;
+    connectionProfilesStatus.classList.remove('offline');
+}
+
+function savePanelsState() {
+    localStorage.setItem('topBarPanelsState', JSON.stringify({
+        sidebarVisible: document.getElementById('extensionSideBar')?.classList.contains('visible'),
+        connectionProfilesVisible: document.getElementById('extensionConnectionProfiles')?.classList.contains('visible'),
+    }));
+}
+
+function restorePanelsState() {
+    const state = JSON.parse(localStorage.getItem('topBarPanelsState'));
+
+    if (!state) {
+        return;
+    }
+
+    if (state.sidebarVisible) {
+        document.getElementById('extensionTopBarToggleSidebar')?.click();
+    }
+
+    if (state.connectionProfilesVisible) {
+        document.getElementById('extensionTopBarToggleConnectionProfiles')?.click();
+    }
+}
+
 // Init extension on load
 (async function () {
     addJQueryHighlight();
@@ -489,7 +633,10 @@ async function onChatNameChange() {
     addTopBar();
     addIcons();
     addSideBar();
+    addConnectionProfiles();
     setChatName(getCurrentChatId());
     chatName.addEventListener('change', onChatNameChange);
     eventSource.on(event_types.CHAT_CHANGED, setChatName);
+    eventSource.once(event_types.APP_READY, restorePanelsState);
+    eventSource.on(event_types.ONLINE_STATUS_CHANGED, onOnlineStatusChange);
 })();

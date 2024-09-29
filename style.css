@@ -7,8 +7,28 @@ body #sheld.flexPatch #chat {
     flex-grow: 1;
 }
 
+#extensionTopBarToggleConnectionProfiles.active,
 #extensionTopBarToggleSidebar.active {
     filter: brightness(150%);
+}
+
+#extensionConnectionProfiles {
+    display: none;
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    align-content: center;
+    align-items: center;
+    width: 100%;
+    border: 1px solid var(--SmartThemeBorderColor);
+    background-color: var(--SmartThemeBlurTintColor);
+    backdrop-filter: blur(var(--SmartThemeBlurStrength));
+    height: calc(var(--bottomFormBlockSize) * 0.75);
+    padding: 0 10px;
+    gap: 10px;
+    margin-top: -1px;
+    font-size: calc(var(--mainFontSize) * 0.9);
+    border-radius: 0 0 10px 10px;
 }
 
 #extensionSideBar {
@@ -16,7 +36,8 @@ body #sheld.flexPatch #chat {
     display: none;
 }
 
-#extensionSideBar.visible {
+#extensionSideBar.visible,
+#extensionConnectionProfiles.visible {
     display: flex;
 }
 
@@ -108,7 +129,6 @@ body.reduced-motion #extensionSideBar {
     gap: 5px;
 }
 
-
 #extensionSideBar #extensionSideBarContainer .sideBarItem .chatStats .counterBlock::after {
     content: "|";
     color: var(--SmartThemeBorderColor);
@@ -123,13 +143,10 @@ body.reduced-motion #extensionSideBar {
     align-content: center;
     align-items: baseline;
     width: 100%;
-    background-color: var(--SmartThemeBlurTintColor);
     border: 1px solid var(--SmartThemeBorderColor);
     border-radius: 10px 10px 0 0;
     background-color: var(--SmartThemeBlurTintColor);
     backdrop-filter: blur(var(--SmartThemeBlurStrength));
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
     height: var(--bottomFormBlockSize);
     padding: 0 10px;
     gap: 10px;
@@ -142,6 +159,35 @@ body.reduced-motion #extensionSideBar {
 
 body.movingUI #extensionTopBar {
     padding-right: 30px;
+}
+
+#extensionConnectionProfilesStatus {
+    flex: 1;
+    opacity: 0.8;
+    text-align: right;
+}
+
+#extensionConnectionProfilesStatus.offline {
+    font-style: italic;
+    opacity: 0.5;
+}
+
+#extensionConnectionProfilesSelect {
+    flex: 1;
+    cursor: pointer;
+    overflow-x: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    width: 100%;
+    opacity: 0.8;
+    background: none;
+    border: none;
+    background-image: url('/img/down-arrow.svg');
+    background-repeat: no-repeat;
+    background-position: right 6px center;
+    background-size: 8px 5px;
+    margin: 0;
+    font-size: calc(var(--mainFontSize)* 0.9);
 }
 
 #extensionTopBarChatName {
