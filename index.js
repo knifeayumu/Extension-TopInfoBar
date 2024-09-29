@@ -338,10 +338,16 @@ async function onToggleSidebarClick() {
     };
 
     const animation = sidebar.animate(keyframes, options);
-    sidebar.classList.toggle('visible');
 
-    await populateSideBar();
-    await animation.finished;
+    if (alreadyVisible) {
+        await animation.finished;
+        sidebar.classList.toggle('visible');
+        await populateSideBar();
+    } else {
+        sidebar.classList.toggle('visible');
+        await populateSideBar();
+        await animation.finished;
+    }
 }
 
 async function populateSideBar() {
