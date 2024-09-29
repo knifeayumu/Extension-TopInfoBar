@@ -11,7 +11,7 @@ const {
 } = SillyTavern.getContext();
 import { addJQueryHighlight } from './jquery-highlight.js';
 import { getGroupPastChats } from '../../../group-chats.js';
-import { getPastCharacterChats, animation_duration, animation_easing } from '../../../../script.js';
+import { getPastCharacterChats, animation_duration, animation_easing, getGeneratingApi } from '../../../../script.js';
 import { debounce, timestampToMoment, sortMoments, uuidv4 } from '../../../utils.js';
 
 /** @type {HTMLDivElement} */
@@ -34,6 +34,8 @@ const connectionProfiles = document.createElement('div');
 const connectionProfilesStatus = document.createElement('div');
 /** @type {HTMLSelectElement} */
 const connectionProfilesSelect = document.createElement('select');
+/** @type {HTMLImageElement} */
+const connectionProfilesIcon = document.createElement('img');
 /** @type {HTMLDivElement} */
 const apiBlock = document.getElementById('rm_api_block');
 
@@ -355,7 +357,7 @@ function addConnectionProfiles() {
         });
     }
 
-    connectionProfiles.append(connectionProfilesSelect, connectionProfilesStatus);
+    connectionProfiles.append(connectionProfilesSelect, connectionProfilesStatus, connectionProfilesIcon);
     sheld.insertBefore(connectionProfiles, chat);
 }
 
@@ -555,6 +557,10 @@ async function onOnlineStatusChange() {
         connectionProfilesSelect.classList.add('displayNone');
     }
 
+    if (connectionProfilesStatus.nextElementSibling?.classList?.contains('icon-svg')) {
+        connectionProfilesStatus.nextElementSibling.remove();
+    }
+
     const { SlashCommandParser, onlineStatus, mainApi } = SillyTavern.getContext();
 
     if (onlineStatus === 'no_connection') {
@@ -601,6 +607,16 @@ async function onOnlineStatusChange() {
     const [currentAPI, currentModel] = await Promise.all([getCurrentAPI(), getCurrentModel()]);
     connectionProfilesStatus.textContent = `${currentAPI} – ${currentModel}`;
     connectionProfilesStatus.classList.remove('offline');
+
+    const modelName = getGeneratingApi();
+    const image = new Image();
+    image.classList.add('icon-svg');
+    image.src = `/img/${modelName}.svg`;
+
+    image.onload = async function () {
+        connectionProfilesStatus.insertAdjacentElement('afterend', image);
+        await SVGInject(this);
+    };
 }
 
 function savePanelsState() {

@@ -168,6 +168,11 @@ body.movingUI #extensionTopBar {
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
+    font-size: calc(var(--mainFontSize)* 0.85);
+}
+
+#extensionConnectionProfilesStatus~.icon-svg {
+    opacity: 0.8;
 }
 
 #extensionConnectionProfilesStatus.offline {
