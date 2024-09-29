@@ -357,8 +357,11 @@ function addConnectionProfiles() {
             connectionProfilesSelect.value = connectionProfilesMainSelect.value;
         });
     }
+    const connectionProfilesIcon = document.createElement('i');
+    connectionProfilesIcon.id = 'extensionConnectionProfilesIcon';
+    connectionProfilesIcon.className = 'fa-fw fa-solid fa-network-wired';
 
-    connectionProfiles.append(connectionProfilesSelect, connectionProfilesStatus, connectionProfilesIcon);
+    connectionProfiles.append(connectionProfilesIcon, connectionProfilesSelect, connectionProfilesStatus, connectionProfilesIcon);
     sheld.insertBefore(connectionProfiles, chat);
 }
 

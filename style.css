@@ -171,6 +171,7 @@ body.movingUI #extensionTopBar {
     font-size: calc(var(--mainFontSize)* 0.85);
 }
 
+#extensionConnectionProfilesIcon,
 #extensionConnectionProfilesStatus~.icon-svg {
     opacity: 0.8;
 }
