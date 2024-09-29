@@ -253,6 +253,7 @@ function searchInChat(query) {
 }
 
 const searchDebounced = debounce((x) => searchInChat(x), 500);
+const updateStatusDebounced = debounce(onOnlineStatusChange, 500);
 
 function addTopBar() {
     chatName.id = 'extensionTopBarChatName';
@@ -654,5 +655,5 @@ function restorePanelsState() {
     chatName.addEventListener('change', onChatNameChange);
     eventSource.on(event_types.CHAT_CHANGED, setChatName);
     eventSource.once(event_types.APP_READY, restorePanelsState);
-    eventSource.on(event_types.ONLINE_STATUS_CHANGED, onOnlineStatusChange);
+    eventSource.on(event_types.ONLINE_STATUS_CHANGED, updateStatusDebounced);
 })();
