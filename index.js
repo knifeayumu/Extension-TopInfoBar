@@ -12,7 +12,7 @@ const {
 import { addJQueryHighlight } from './jquery-highlight.js';
 import { getGroupPastChats } from '../../../group-chats.js';
 import { getPastCharacterChats, animation_duration, animation_easing, getGeneratingApi } from '../../../../script.js';
-import { debounce, timestampToMoment, sortMoments, uuidv4 } from '../../../utils.js';
+import { debounce, timestampToMoment, sortMoments, uuidv4, waitUntilCondition } from '../../../utils.js';
 
 /** @type {HTMLDivElement} */
 const movingDivs = document.getElementById('movingDivs');
@@ -334,35 +334,39 @@ function addSideBar() {
 }
 
 function addConnectionProfiles() {
-    const connectionProfilesMainSelect = document.getElementById('connection_profiles');
     connectionProfiles.id = 'extensionConnectionProfiles';
     connectionProfilesStatus.id = 'extensionConnectionProfilesStatus';
     connectionProfilesSelect.id = 'extensionConnectionProfilesSelect';
     connectionProfilesSelect.title = 'Switch connection profile';
-    connectionProfilesSelect.addEventListener('change', async () => {
+
+    const connectionProfilesServerIcon = document.createElement('i');
+    connectionProfilesServerIcon.id = 'extensionConnectionProfilesIcon';
+    connectionProfilesServerIcon.className = 'fa-fw fa-solid fa-network-wired';
+
+    connectionProfiles.append(connectionProfilesServerIcon, connectionProfilesSelect, connectionProfilesStatus, connectionProfilesIcon);
+    sheld.insertBefore(connectionProfiles, chat);
+}
+
+function bindConnectionProfilesSelect() {
+    waitUntilCondition(() => document.getElementById('connection_profiles')).then(() => {
         /** @type {HTMLSelectElement} */
+        const connectionProfilesMainSelect = document.getElementById('connection_profiles');
         if (!connectionProfilesMainSelect) {
             return;
         }
-        connectionProfilesMainSelect.value = connectionProfilesSelect.value;
-        connectionProfilesMainSelect.dispatchEvent(new Event('change'));
-    });
-    if (connectionProfilesMainSelect) {
+        connectionProfilesSelect.addEventListener('change', async () => {
+            connectionProfilesMainSelect.value = connectionProfilesSelect.value;
+            connectionProfilesMainSelect.dispatchEvent(new Event('change'));
+        });
+        connectionProfilesMainSelect.addEventListener('change', async () => {
+            connectionProfilesSelect.value = connectionProfilesMainSelect.value;
+        });
         const observer = new MutationObserver(() => {
             connectionProfilesSelect.innerHTML = connectionProfilesMainSelect.innerHTML;
             connectionProfilesSelect.value = connectionProfilesMainSelect.value;
         });
         observer.observe(connectionProfilesMainSelect, { childList: true });
-        connectionProfilesMainSelect.addEventListener('change', async () => {
-            connectionProfilesSelect.value = connectionProfilesMainSelect.value;
-        });
-    }
-    const connectionProfilesIcon = document.createElement('i');
-    connectionProfilesIcon.id = 'extensionConnectionProfilesIcon';
-    connectionProfilesIcon.className = 'fa-fw fa-solid fa-network-wired';
-
-    connectionProfiles.append(connectionProfilesIcon, connectionProfilesSelect, connectionProfilesStatus, connectionProfilesIcon);
-    sheld.insertBefore(connectionProfiles, chat);
+    });
 }
 
 async function onToggleSidebarClick() {
@@ -657,6 +661,9 @@ function restorePanelsState() {
     setChatName(getCurrentChatId());
     chatName.addEventListener('change', onChatNameChange);
     eventSource.on(event_types.CHAT_CHANGED, setChatName);
-    eventSource.once(event_types.APP_READY, restorePanelsState);
+    eventSource.once(event_types.APP_READY, () => {
+        bindConnectionProfilesSelect();
+        restorePanelsState();
+    });
     eventSource.on(event_types.ONLINE_STATUS_CHANGED, updateStatusDebounced);
 })();
