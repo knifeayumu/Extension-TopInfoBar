@@ -325,22 +325,23 @@ async function onToggleSidebarClick() {
         return;
     }
 
-    const shouldAnimate = animation_duration > 0;
-    if (shouldAnimate) {
-        const alreadyVisible = sidebar.classList.contains('visible');
-        const keyframes = [
-            { opacity: alreadyVisible ? 1 : 0 },
-            { opacity: alreadyVisible ? 0 : 1 },
-        ];
-        sidebar.animate(keyframes, { duration: animation_duration, easing: animation_easing });
-    }
-
-    sidebar.classList.toggle('visible');
     toggle.classList.toggle('active');
+    const alreadyVisible = sidebar.classList.contains('visible');
 
-    if (sidebar.classList.contains('visible')) {
-        await populateSideBar();
-    }
+    const keyframes = [
+        { opacity: alreadyVisible ? 1 : 0 },
+        { opacity: alreadyVisible ? 0 : 1 },
+    ];
+    const options = {
+        duration: animation_duration,
+        easing: animation_easing,
+    };
+
+    const animation = sidebar.animate(keyframes, options);
+    sidebar.classList.toggle('visible');
+
+    await populateSideBar();
+    await animation.finished;
 }
 
 async function populateSideBar() {
