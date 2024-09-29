@@ -48,18 +48,18 @@ const icons = [
         onClick: onToggleSidebarClick,
     },
     {
-        id: 'extensionTopBarChatManager',
-        icon: 'fa-fw fa-solid fa-address-book',
-        position: 'left',
-        title: 'View chat files',
-        onClick: onChatManagerClick,
-    },
-    {
         id: 'extensionTopBarToggleConnectionProfiles',
         icon: 'fa-fw fa-solid fa-plug',
-        position: 'right',
+        position: 'left',
         title: 'Show connection profiles',
         onClick: onToggleConnectionProfilesClick,
+    },
+    {
+        id: 'extensionTopBarChatManager',
+        icon: 'fa-fw fa-solid fa-address-book',
+        position: 'right',
+        title: 'View chat files',
+        onClick: onChatManagerClick,
     },
     {
         id: 'extensionTopBarNewChat',
