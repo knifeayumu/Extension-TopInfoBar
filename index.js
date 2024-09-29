@@ -574,6 +574,9 @@ async function onOnlineStatusChange() {
     if (onlineStatus === 'no_connection') {
         connectionProfilesStatus.classList.add('offline');
         connectionProfilesStatus.textContent = 'No connection...';
+        const nullIcon = new Image();
+        nullIcon.classList.add('icon-svg', 'null-icon');
+        connectionProfilesStatus.insertAdjacentElement('afterend', nullIcon);
         return;
     }
 
@@ -613,18 +616,31 @@ async function onOnlineStatusChange() {
     }
 
     const [currentAPI, currentModel] = await Promise.all([getCurrentAPI(), getCurrentModel()]);
-    connectionProfilesStatus.textContent = `${currentAPI} – ${currentModel}`;
+    await addConnectionProfileIcon();
     connectionProfilesStatus.classList.remove('offline');
+    connectionProfilesStatus.textContent = `${currentAPI} – ${currentModel}`;
+}
 
-    const modelName = getGeneratingApi();
-    const image = new Image();
-    image.classList.add('icon-svg');
-    image.src = `/img/${modelName}.svg`;
+async function addConnectionProfileIcon() {
+    return new Promise((resolve) => {
+        const modelName = getGeneratingApi();
+        const image = new Image();
+        image.classList.add('icon-svg');
+        image.src = `/img/${modelName}.svg`;
 
-    image.onload = async function () {
-        connectionProfilesStatus.insertAdjacentElement('afterend', image);
-        await SVGInject(this);
-    };
+        image.onload = async function () {
+            connectionProfilesStatus.insertAdjacentElement('afterend', image);
+            await SVGInject(this);
+            resolve();
+        };
+
+        image.onerror = function () {
+            resolve();
+        };
+
+        // Prevent infinite waiting
+        setTimeout(() => resolve(), 500);
+    });
 }
 
 function savePanelsState() {
