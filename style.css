@@ -214,6 +214,10 @@ body.movingUI #extensionTopBar {
     opacity: 0.8;
     background: none;
     border: none;
+    background-image: url('/img/down-arrow.svg');
+    background-repeat: no-repeat;
+    background-position: right 6px center;
+    background-size: 8px 5px;
 }
 
 #extensionTopBarSearchInput {
