@@ -218,6 +218,7 @@ body.movingUI #extensionTopBar {
     background-repeat: no-repeat;
     background-position: right 6px center;
     background-size: 8px 5px;
+    padding-right: 20px;
 }
 
 #extensionTopBarSearchInput {
