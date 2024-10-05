@@ -253,7 +253,7 @@ function searchInChat(query) {
 }
 
 const searchDebounced = debounce((x) => searchInChat(x), 500);
-const updateStatusDebounced = debounce(onOnlineStatusChange, 500);
+const updateStatusDebounced = debounce(onOnlineStatusChange, 1000);
 
 function addTopBar() {
     chatName.id = 'extensionTopBarChatName';
@@ -345,6 +345,10 @@ function addConnectionProfiles() {
 
     connectionProfiles.append(connectionProfilesServerIcon, connectionProfilesSelect, connectionProfilesStatus, connectionProfilesIcon);
     sheld.insertBefore(connectionProfiles, chat);
+
+    apiBlock.querySelectorAll('select').forEach(select => {
+        select.addEventListener('input', updateStatusDebounced);
+    });
 }
 
 function bindConnectionProfilesSelect() {
