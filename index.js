@@ -2,42 +2,31 @@ const {
     eventSource,
     event_types,
     getCurrentChatId,
-    callGenericPopup,
     renameChat,
     getRequestHeaders,
     openGroupChat,
     openCharacterChat,
-    executeSlashCommands,
+    executeSlashCommandsWithOptions,
+    Popup,
 } = SillyTavern.getContext();
 import { addJQueryHighlight } from './jquery-highlight.js';
 import { getGroupPastChats } from '../../../group-chats.js';
 import { getPastCharacterChats, animation_duration, animation_easing, getGeneratingApi } from '../../../../script.js';
 import { debounce, timestampToMoment, sortMoments, uuidv4, waitUntilCondition } from '../../../utils.js';
 
-/** @type {HTMLDivElement} */
-const movingDivs = document.getElementById('movingDivs');
-/** @type {HTMLDivElement} */
-const sheld = document.getElementById('sheld');
-/** @type {HTMLDivElement} */
-const chat = document.getElementById('chat');
-/** @type {HTMLDivElement} */
+const movingDivs = /** @type {HTMLDivElement} */ (document.getElementById('movingDivs'));
+const sheld = /** @type {HTMLDivElement} */ (document.getElementById('sheld'));
+const chat = /** @type {HTMLDivElement} */ (document.getElementById('chat'));
+const draggableTemplate = /** @type {HTMLTemplateElement} */ (document.getElementById('generic_draggable_template'));
+const apiBlock = /** @type {HTMLDivElement} */ (document.getElementById('rm_api_block'));
+
 const topBar = document.createElement('div');
-/** @type {HTMLSelectElement} */
 const chatName = document.createElement('select');
-/** @type {HTMLInputElement} */
 const searchInput = document.createElement('input');
-/** @type {HTMLTemplateElement} */
-const draggableTemplate = document.getElementById('generic_draggable_template');
-/** @type {HTMLDivElement} */
 const connectionProfiles = document.createElement('div');
-/** @type {HTMLDivElement} */
 const connectionProfilesStatus = document.createElement('div');
-/** @type {HTMLSelectElement} */
 const connectionProfilesSelect = document.createElement('select');
-/** @type {HTMLImageElement} */
 const connectionProfilesIcon = document.createElement('img');
-/** @type {HTMLDivElement} */
-const apiBlock = document.getElementById('rm_api_block');
 
 const icons = [
     {
@@ -81,9 +70,9 @@ const icons = [
         position: 'right',
         title: 'Delete chat',
         onClick: async () => {
-            const confirm = await callGenericPopup('<h3>Are you sure?</h3>', 2);
+            const confirm = await Popup.show.confirm('Are you sure?');
             if (confirm) {
-                await executeSlashCommands('/delchat');
+                await executeSlashCommandsWithOptions('/delchat');
             }
         },
     },
@@ -115,13 +104,13 @@ async function onRenameChatClick() {
         return;
     }
 
-    const newChatName = await callGenericPopup('Enter new chat name', 3, currentChatName);
+    const newChatName = await Popup.show.input('Enter new chat name', null, currentChatName);
 
     if (!newChatName || newChatName === currentChatName) {
         return;
     }
 
-    await renameChat(currentChatName, newChatName);
+    await renameChat(currentChatName, String(newChatName));
 }
 
 function patchSheldIfNeeded() {
@@ -167,7 +156,7 @@ function setChatName(name) {
             }
             else {
                 const characterAvatar = context.characters[context.characterId]?.avatar;
-                list.push(...await getListOfCharacterChats(characterAvatar, true));
+                list.push(...await getListOfCharacterChats(characterAvatar));
             }
 
             if (list.length > 0) {
@@ -293,7 +282,7 @@ function addIcons() {
             topBar.insertBefore(iconElement, searchInput);
             return;
         }
-        if (id === 'extensionTopBarRenameChat' && typeof renameChat !== 'function') {
+        if (icon.id === 'extensionTopBarRenameChat' && typeof renameChat !== 'function') {
             iconElement.classList.add('displayNone');
         }
     });
@@ -305,8 +294,7 @@ function addSideBar() {
         return;
     }
 
-    /** @type {DocumentFragment} */
-    const fragment = draggableTemplate.content.cloneNode(true);
+    const fragment = /** @type {DocumentFragment} */ (draggableTemplate.content.cloneNode(true));
     const draggable = fragment.querySelector('.draggable');
     const closeButton = fragment.querySelector('.dragClose');
 
@@ -347,14 +335,13 @@ function addConnectionProfiles() {
     sheld.insertBefore(connectionProfiles, chat);
 
     apiBlock.querySelectorAll('select').forEach(select => {
-        select.addEventListener('input', updateStatusDebounced);
+        select.addEventListener('input', () => updateStatusDebounced());
     });
 }
 
 function bindConnectionProfilesSelect() {
-    waitUntilCondition(() => document.getElementById('connection_profiles')).then(() => {
-        /** @type {HTMLSelectElement} */
-        const connectionProfilesMainSelect = document.getElementById('connection_profiles');
+    waitUntilCondition(() => document.getElementById('connection_profiles') !== null).then(() => {
+        const connectionProfilesMainSelect = /** @type {HTMLSelectElement} */ (document.getElementById('connection_profiles'));
         if (!connectionProfilesMainSelect) {
             return;
         }
@@ -451,7 +438,7 @@ async function populateSideBar() {
                 return;
             }
 
-            container.childNodes.forEach(x => x.classList.remove('selected'));
+            container.childNodes.forEach(x => x instanceof HTMLElement && x.classList.remove('selected'));
             sideBarItem.classList.add('selected');
             await openChatById(chat.file_name);
         });
@@ -560,8 +547,7 @@ async function onOnlineStatusChange() {
         return;
     }
 
-    /** @type {HTMLSelectElement} */
-    const connectionProfilesMainSelect = document.getElementById('connection_profiles');
+    const connectionProfilesMainSelect = /** @type {HTMLSelectElement} */ (document.getElementById('connection_profiles'));
     if (connectionProfilesMainSelect) {
         connectionProfilesSelect.innerHTML = connectionProfilesMainSelect.innerHTML;
         connectionProfilesSelect.value = connectionProfilesMainSelect.value;
@@ -597,7 +583,7 @@ async function onOnlineStatusChange() {
         const fancyNameOption = apiBlock.querySelector(`select:not(#main_api) option[value="${currentAPI}"]`) ?? apiBlock.querySelector(`select#main_api option[value="${currentAPI}"]`);
         if (fancyNameOption) {
             // Remove text in parentheses or brackets
-            return fancyNameOption.textContent.replace(/[\[\(].*[\]\)]/, '').trim();
+            return fancyNameOption.textContent.replace(/[[(].*[\])]/, '').trim();
         }
         return currentAPI;
     }
@@ -606,7 +592,7 @@ async function onOnlineStatusChange() {
         let currentModel = onlineStatus;
         try {
             const commandResult = await SlashCommandParser.commands['model'].callback({ quiet: 'true' }, '');
-            if (commandResult) {
+            if (commandResult && typeof commandResult === 'string') {
                 currentModel = commandResult;
             }
         } catch (error) {
@@ -634,7 +620,7 @@ async function addConnectionProfileIcon() {
 
         image.onload = async function () {
             connectionProfilesStatus.insertAdjacentElement('afterend', image);
-            await SVGInject(this);
+            await SVGInject(image);
             resolve();
         };
 
