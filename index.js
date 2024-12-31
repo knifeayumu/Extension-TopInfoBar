@@ -13,6 +13,7 @@ import { addJQueryHighlight } from './jquery-highlight.js';
 import { getGroupPastChats } from '../../../group-chats.js';
 import { getPastCharacterChats, animation_duration, animation_easing, getGeneratingApi } from '../../../../script.js';
 import { debounce, timestampToMoment, sortMoments, uuidv4, waitUntilCondition } from '../../../utils.js';
+import { t } from '../../../i18n.js';
 
 const movingDivs = /** @type {HTMLDivElement} */ (document.getElementById('movingDivs'));
 const sheld = /** @type {HTMLDivElement} */ (document.getElementById('sheld'));
@@ -33,44 +34,44 @@ const icons = [
         id: 'extensionTopBarToggleSidebar',
         icon: 'fa-fw fa-solid fa-box-archive',
         position: 'left',
-        title: 'Toggle sidebar',
+        title: t`Toggle sidebar`,
         onClick: onToggleSidebarClick,
     },
     {
         id: 'extensionTopBarToggleConnectionProfiles',
         icon: 'fa-fw fa-solid fa-plug',
         position: 'left',
-        title: 'Show connection profiles',
+        title: t`Show connection profiles`,
         onClick: onToggleConnectionProfilesClick,
     },
     {
         id: 'extensionTopBarChatManager',
         icon: 'fa-fw fa-solid fa-address-book',
         position: 'right',
-        title: 'View chat files',
+        title: t`View chat files`,
         onClick: onChatManagerClick,
     },
     {
         id: 'extensionTopBarNewChat',
         icon: 'fa-fw fa-solid fa-comments',
         position: 'right',
-        title: 'New chat',
+        title: t`New chat`,
         onClick: onNewChatClick,
     },
     {
         id: 'extensionTopBarRenameChat',
         icon: 'fa-fw fa-solid fa-edit',
         position: 'right',
-        title: 'Rename chat',
+        title: t`Rename chat`,
         onClick: onRenameChatClick,
     },
     {
         id: 'extensionTopBarDeleteChat',
         icon: 'fa-fw fa-solid fa-trash',
         position: 'right',
-        title: 'Delete chat',
+        title: t`Delete chat`,
         onClick: async () => {
-            const confirm = await Popup.show.confirm('Are you sure?');
+            const confirm = await Popup.show.confirm(t`Are you sure?`);
             if (confirm) {
                 await executeSlashCommandsWithOptions('/delchat');
             }
@@ -80,7 +81,7 @@ const icons = [
         id: 'extensionTopBarCloseChat',
         icon: 'fa-fw fa-solid fa-times',
         position: 'right',
-        title: 'Close chat',
+        title: t`Close chat`,
         onClick: onCloseChatClick,
     },
 ];
@@ -104,7 +105,7 @@ async function onRenameChatClick() {
         return;
     }
 
-    const newChatName = await Popup.show.input('Enter new chat name', null, currentChatName);
+    const newChatName = await Popup.show.input(t`Enter new chat name`, null, currentChatName);
 
     if (!newChatName || newChatName === currentChatName) {
         return;
@@ -132,7 +133,7 @@ function setChatName(name) {
     const isNotInChat = !name;
     chatName.innerHTML = '';
     const selectedOption = document.createElement('option');
-    selectedOption.innerText = name || 'No chat selected';
+    selectedOption.innerText = name || t`No chat selected`;
     selectedOption.selected = true;
     chatName.appendChild(selectedOption);
     chatName.disabled = true;
@@ -290,7 +291,7 @@ function addIcons() {
 
 function addSideBar() {
     if (!draggableTemplate) {
-        console.warn('Draggable template not found. Side bar will not be added.');
+        console.warn(t`Draggable template not found. Side bar will not be added.`);
         return;
     }
 
@@ -299,7 +300,7 @@ function addSideBar() {
     const closeButton = fragment.querySelector('.dragClose');
 
     if (!draggable || !closeButton) {
-        console.warn('Failed to find draggable or close button. Side bar will not be added.');
+        console.warn(t`Failed to find draggable or close button. Side bar will not be added.`);
         return;
     }
 
@@ -325,7 +326,7 @@ function addConnectionProfiles() {
     connectionProfiles.id = 'extensionConnectionProfiles';
     connectionProfilesStatus.id = 'extensionConnectionProfilesStatus';
     connectionProfilesSelect.id = 'extensionConnectionProfilesSelect';
-    connectionProfilesSelect.title = 'Switch connection profile';
+    connectionProfilesSelect.title = t`Switch connection profile`;
 
     const connectionProfilesServerIcon = document.createElement('i');
     connectionProfilesServerIcon.id = 'extensionConnectionProfilesIcon';
@@ -365,7 +366,7 @@ async function onToggleSidebarClick() {
     const toggle = document.getElementById('extensionTopBarToggleSidebar');
 
     if (!sidebar || !toggle) {
-        console.warn('Sidebar or toggle button not found');
+        console.warn(t`Sidebar or toggle button not found`);
         return;
     }
 
@@ -423,7 +424,7 @@ async function populateSideBar() {
     const chats = (await getChatFiles()).map(prettify).sort((a, b) => sortMoments(a.last_mes, b.last_mes));
 
     if (container.dataset.processId !== processId) {
-        console.log('Aborting populateSideBar due to process id mismatch');
+        console.log(t`Aborting populateSideBar due to process id mismatch`);
         return;
     }
 
@@ -563,7 +564,8 @@ async function onOnlineStatusChange() {
 
     if (onlineStatus === 'no_connection') {
         connectionProfilesStatus.classList.add('offline');
-        connectionProfilesStatus.textContent = 'No connection...';
+        connectionProfilesStatus.textContent = t`No connection...`;
+
         const nullIcon = new Image();
         nullIcon.classList.add('icon-svg', 'null-icon');
         connectionProfilesStatus.insertAdjacentElement('afterend', nullIcon);
@@ -578,7 +580,7 @@ async function onOnlineStatusChange() {
                 currentAPI = commandResult;
             }
         } catch (error) {
-            console.error('Failed to get current API', error);
+            console.error(t`Failed to get current API`, error);
         }
         const fancyNameOption = apiBlock.querySelector(`select:not(#main_api) option[value="${currentAPI}"]`) ?? apiBlock.querySelector(`select#main_api option[value="${currentAPI}"]`);
         if (fancyNameOption) {
@@ -596,7 +598,7 @@ async function onOnlineStatusChange() {
                 currentModel = commandResult;
             }
         } catch (error) {
-            console.error('Failed to get current model', error);
+            console.error(t`Failed to get current model`, error);
         }
         const fancyNameOption = apiBlock.querySelector(`option[value="${currentModel}"]`);
         if (fancyNameOption) {
