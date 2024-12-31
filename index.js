@@ -129,7 +129,7 @@ function patchSheldIfNeeded() {
     // Fun fact: sheld is a typo. It should be shell.
     // It was fixed in OG TAI long ago, but we still have it here.
     if (!sheld) {
-        console.error(t`Sheld not found. Did you finally rename it?`);
+        console.error('Sheld not found. Did you finally rename it?');
         return;
     }
 
@@ -302,7 +302,7 @@ function addIcons() {
 
 function addSideBar() {
     if (!draggableTemplate) {
-        console.warn('Draggable template not found. Side bar will not be added.');
+        console.warn(t`Draggable template not found. Side bar will not be added.`);
         return;
     }
 
@@ -312,7 +312,7 @@ function addSideBar() {
     const closeButton = fragment.querySelector('.dragClose');
 
     if (!draggable || !closeButton) {
-        console.warn('Failed to find draggable or close button. Side bar will not be added.');
+        console.warn(t`Failed to find draggable or close button. Side bar will not be added.`);
         return;
     }
 
@@ -338,7 +338,7 @@ function addConnectionProfiles() {
     connectionProfiles.id = 'extensionConnectionProfiles';
     connectionProfilesStatus.id = 'extensionConnectionProfilesStatus';
     connectionProfilesSelect.id = 'extensionConnectionProfilesSelect';
-    connectionProfilesSelect.title = 'Switch connection profile';
+    connectionProfilesSelect.title = t`Switch connection profile`;
 
     const connectionProfilesServerIcon = document.createElement('i');
     connectionProfilesServerIcon.id = 'extensionConnectionProfilesIcon';
@@ -379,7 +379,7 @@ async function onToggleSidebarClick() {
     const toggle = document.getElementById('extensionTopBarToggleSidebar');
 
     if (!sidebar || !toggle) {
-        console.warn('Sidebar or toggle button not found');
+        console.warn(t`Sidebar or toggle button not found`);
         return;
     }
 
@@ -437,7 +437,7 @@ async function populateSideBar() {
     const chats = (await getChatFiles()).map(prettify).sort((a, b) => sortMoments(a.last_mes, b.last_mes));
 
     if (container.dataset.processId !== processId) {
-        console.log('Aborting populateSideBar due to process id mismatch');
+        console.log(t`Aborting populateSideBar due to process id mismatch`);
         return;
     }
 
@@ -578,7 +578,8 @@ async function onOnlineStatusChange() {
 
     if (onlineStatus === 'no_connection') {
         connectionProfilesStatus.classList.add('offline');
-        connectionProfilesStatus.textContent = 'No connection...';
+        connectionProfilesStatus.textContent = t`No connection...`;
+
         const nullIcon = new Image();
         nullIcon.classList.add('icon-svg', 'null-icon');
         connectionProfilesStatus.insertAdjacentElement('afterend', nullIcon);
@@ -593,7 +594,7 @@ async function onOnlineStatusChange() {
                 currentAPI = commandResult;
             }
         } catch (error) {
-            console.error('Failed to get current API', error);
+            console.error(t`Failed to get current API`, error);
         }
         const fancyNameOption = apiBlock.querySelector(`select:not(#main_api) option[value="${currentAPI}"]`) ?? apiBlock.querySelector(`select#main_api option[value="${currentAPI}"]`);
         if (fancyNameOption) {
@@ -611,7 +612,7 @@ async function onOnlineStatusChange() {
                 currentModel = commandResult;
             }
         } catch (error) {
-            console.error('Failed to get current model', error);
+            console.error(t`Failed to get current model`, error);
         }
         const fancyNameOption = apiBlock.querySelector(`option[value="${currentModel}"]`);
         if (fancyNameOption) {
