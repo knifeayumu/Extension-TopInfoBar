@@ -13,6 +13,7 @@ import { addJQueryHighlight } from './jquery-highlight.js';
 import { getGroupPastChats } from '../../../group-chats.js';
 import { getPastCharacterChats, animation_duration, animation_easing, getGeneratingApi } from '../../../../script.js';
 import { debounce, timestampToMoment, sortMoments, uuidv4, waitUntilCondition } from '../../../utils.js';
+import {t} from '../../../i18n.js';
 
 /** @type {HTMLDivElement} */
 const movingDivs = document.getElementById('movingDivs');
@@ -44,44 +45,44 @@ const icons = [
         id: 'extensionTopBarToggleSidebar',
         icon: 'fa-fw fa-solid fa-box-archive',
         position: 'left',
-        title: 'Toggle sidebar',
+        title: t`Toggle sidebar`,
         onClick: onToggleSidebarClick,
     },
     {
         id: 'extensionTopBarToggleConnectionProfiles',
         icon: 'fa-fw fa-solid fa-plug',
         position: 'left',
-        title: 'Show connection profiles',
+        title: t`Show connection profiles`,
         onClick: onToggleConnectionProfilesClick,
     },
     {
         id: 'extensionTopBarChatManager',
         icon: 'fa-fw fa-solid fa-address-book',
         position: 'right',
-        title: 'View chat files',
+        title: t`View chat files`,
         onClick: onChatManagerClick,
     },
     {
         id: 'extensionTopBarNewChat',
         icon: 'fa-fw fa-solid fa-comments',
         position: 'right',
-        title: 'New chat',
+        title: t`New chat`,
         onClick: onNewChatClick,
     },
     {
         id: 'extensionTopBarRenameChat',
         icon: 'fa-fw fa-solid fa-edit',
         position: 'right',
-        title: 'Rename chat',
+        title: t`Rename chat`,
         onClick: onRenameChatClick,
     },
     {
         id: 'extensionTopBarDeleteChat',
         icon: 'fa-fw fa-solid fa-trash',
         position: 'right',
-        title: 'Delete chat',
+        title: t`Delete chat`,
         onClick: async () => {
-            const confirm = await callGenericPopup('<h3>Are you sure?</h3>', 2);
+            const confirm = await callGenericPopup(`<h3>${t`Are you sure?`}</h3>`, 2);
             if (confirm) {
                 await executeSlashCommands('/delchat');
             }
@@ -91,7 +92,7 @@ const icons = [
         id: 'extensionTopBarCloseChat',
         icon: 'fa-fw fa-solid fa-times',
         position: 'right',
-        title: 'Close chat',
+        title: t`Close chat`,
         onClick: onCloseChatClick,
     },
 ];
@@ -115,7 +116,7 @@ async function onRenameChatClick() {
         return;
     }
 
-    const newChatName = await callGenericPopup('Enter new chat name', 3, currentChatName);
+    const newChatName = await callGenericPopup(t`Enter new chat name`, 3, currentChatName);
 
     if (!newChatName || newChatName === currentChatName) {
         return;
@@ -128,7 +129,7 @@ function patchSheldIfNeeded() {
     // Fun fact: sheld is a typo. It should be shell.
     // It was fixed in OG TAI long ago, but we still have it here.
     if (!sheld) {
-        console.error('Sheld not found. Did you finally rename it?');
+        console.error(t`Sheld not found. Did you finally rename it?`);
         return;
     }
 
@@ -143,7 +144,7 @@ function setChatName(name) {
     const isNotInChat = !name;
     chatName.innerHTML = '';
     const selectedOption = document.createElement('option');
-    selectedOption.innerText = name || 'No chat selected';
+    selectedOption.innerText = name || t`No chat selected`;
     selectedOption.selected = true;
     chatName.appendChild(selectedOption);
     chatName.disabled = true;
