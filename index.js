@@ -668,7 +668,9 @@ function restorePanelsState() {
     addConnectionProfiles();
     setChatName(getCurrentChatId());
     chatName.addEventListener('change', onChatNameChange);
-    eventSource.on(event_types.CHAT_CHANGED, setChatName);
+    for (const eventName of [event_types.CHAT_CHANGED, event_types.CHAT_DELETED, event_types.GROUP_CHAT_DELETED]) {
+        eventSource.on(eventName, setChatName);
+    }
     eventSource.once(event_types.APP_READY, () => {
         bindConnectionProfilesSelect();
         restorePanelsState();
