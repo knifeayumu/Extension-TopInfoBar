@@ -13,6 +13,7 @@ import { addJQueryHighlight } from './jquery-highlight.js';
 import { getGroupPastChats } from '../../../group-chats.js';
 import { getPastCharacterChats, animation_duration, animation_easing, getGeneratingApi } from '../../../../script.js';
 import { debounce, timestampToMoment, sortMoments, uuidv4, waitUntilCondition } from '../../../utils.js';
+import { debounce_timeout } from '../../../constants.js';
 import { t } from '../../../i18n.js';
 
 const movingDivs = /** @type {HTMLDivElement} */ (document.getElementById('movingDivs'));
@@ -668,8 +669,9 @@ function restorePanelsState() {
     addConnectionProfiles();
     setChatName(getCurrentChatId());
     chatName.addEventListener('change', onChatNameChange);
+    const setChatNameDebounced = debounce(() => setChatName(getCurrentChatId()), debounce_timeout.short);
     for (const eventName of [event_types.CHAT_CHANGED, event_types.CHAT_DELETED, event_types.GROUP_CHAT_DELETED]) {
-        eventSource.on(eventName, setChatName);
+        eventSource.on(eventName, setChatNameDebounced);
     }
     eventSource.once(event_types.APP_READY, () => {
         bindConnectionProfilesSelect();
