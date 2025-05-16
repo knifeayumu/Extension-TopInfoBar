@@ -43,6 +43,7 @@ const icons = [
         icon: 'fa-fw fa-solid fa-plug',
         position: 'left',
         title: t`Show connection profiles`,
+        isTemporaryAllowed: true,
         onClick: onToggleConnectionProfilesClick,
     },
     {
@@ -57,6 +58,7 @@ const icons = [
         icon: 'fa-fw fa-solid fa-comments',
         position: 'right',
         title: t`New chat`,
+        isTemporaryAllowed: true,
         onClick: onNewChatClick,
     },
     {
@@ -83,6 +85,7 @@ const icons = [
         icon: 'fa-fw fa-solid fa-times',
         position: 'right',
         title: t`Close chat`,
+        isTemporaryAllowed: true,
         onClick: onCloseChatClick,
     },
 ];
@@ -141,7 +144,7 @@ function setChatName(name) {
 
     icons.forEach(icon => {
         const iconElement = document.getElementById(icon.id);
-        if (iconElement) {
+        if (iconElement && !icon.isTemporaryAllowed) {
             iconElement.classList.toggle('not-in-chat', isNotInChat);
         }
     });
