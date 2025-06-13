@@ -51,6 +51,7 @@ const icons = [
         icon: 'fa-fw fa-solid fa-address-book',
         position: 'right',
         title: t`View chat files`,
+        isTemporaryAllowed: true,
         onClick: onChatManagerClick,
     },
     {
